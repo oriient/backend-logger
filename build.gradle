@@ -1,0 +1,112 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    ext.lib_version_name = "0.1.0"
+    ext.lib_version_code = 1
+    ext.java_version = JavaVersion.VERSION_1_8
+    ext.kotlin_stdlib = 'kotlin-stdlib-jdk8'
+    ext.kotlin_version = '1.3.72'
+    ext.ktor_version = '1.3.2'
+    ext.coroutines_version = "1.3.4"
+    ext.koin_version = "2.1.5"
+    ext.support_version = "28.0.0"
+    ext.sqldelight_version = "1.2.2"
+    ext.work_version = "2.3.4"
+    ext.junit_version = "4.12"
+    ext.mockk_version = "1.9"
+    ext.android_tests_versdion = "1.2.0"
+    ext.dokka_version = "0.10.1"
+
+    ext.all_dependencies = []
+
+    repositories {
+        google()
+        jcenter()
+        maven { url "https://dl.bintray.com/kotlin/kotlinx" }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.6.3'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
+        classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:2.2.2'
+        classpath "com.squareup.sqldelight:gradle-plugin:$sqldelight_version"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.15.1"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+
+        flatDir {
+            dirs 'libs'
+        }
+    }
+}
+
+apply plugin: "maven-publish"
+apply plugin: "com.jfrog.artifactory"
+
+Properties localProperties = new Properties()
+localProperties.load(project.rootProject.file("local.properties").newDataInputStream())
+def publishUrl = localProperties.getProperty("publish.url", "")
+def publishRepoKey = localProperties.getProperty("publish.repokey", "")
+def publishUsername = localProperties.getProperty("publish.username", "")
+def publishPassword = localProperties.getProperty("publish.password", "")
+
+artifactory {
+    contextUrl = publishUrl
+    publish {
+        repository {
+            repoKey = publishRepoKey
+
+            username = publishUsername
+            password = publishPassword
+        }
+        defaults {
+            publications("backendlogger")
+            publications("serializerjson")
+            publishArtifacts = true
+
+            properties = ["qa.level": "basic", "q.os": "android", "dev.team": "core"]
+            publishPom = true
+        }
+    }
+}
+
+subprojects { project ->
+
+    if (project.name == 'services-android' || project.name == 'test-app' || project.name == 'services-serializer-json')
+        return
+
+    apply plugin: 'java-library'
+    apply plugin: 'kotlin'
+
+    sourceCompatibility = java_version
+    targetCompatibility = java_version
+
+    dependencies {
+        implementation fileTree(dir: 'libs', include: ['*.jar'])
+        implementation "org.jetbrains.kotlin:$kotlin_stdlib:$kotlin_version"
+
+        implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+
+        implementation "com.android.support:support-annotations:$support_version"
+
+        testImplementation "junit:junit:$junit_version"
+        testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+        testImplementation "io.mockk:mockk:$mockk_version"
+    }
+
+    compileKotlin {
+        kotlinOptions {
+            freeCompilerArgs = ["-XXLanguage:+InlineClasses"]
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

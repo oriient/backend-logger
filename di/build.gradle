@@ -1,0 +1,21 @@
+
+task copyJar(type: Copy) {
+    from jar // here it automatically reads jar file produced from jar task
+    into "${project(":services-android").projectDir.absolutePath}/libs"
+}
+jar.finalizedBy(copyJar)
+
+dependencies {
+    implementation project(":services-messages")
+    implementation project(":services-rest")
+    implementation project(":services-database")
+    implementation project(":services-os")
+    implementation project(":utils")
+
+    implementation "org.koin:koin-core:$koin_version"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+
+    testImplementation project(':di')
+}
+
+rootProject.all_dependencies += configurations.implementation.getAllDependencies()

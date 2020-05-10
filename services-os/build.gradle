@@ -1,0 +1,16 @@
+apply plugin: 'com.squareup.sqldelight'
+
+task copyJar(type: Copy) {
+    from jar // here it automatically reads jar file produced from jar task
+    into "${project(":services-android").projectDir.absolutePath}/libs"
+}
+jar.finalizedBy(copyJar)
+
+dependencies {
+    implementation project(":utils")
+
+    implementation "io.ktor:ktor-client:$ktor_version"
+}
+
+rootProject.all_dependencies += configurations.implementation.getAllDependencies()
+

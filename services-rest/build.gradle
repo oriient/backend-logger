@@ -1,0 +1,18 @@
+task copyJar(type: Copy) {
+    from jar // here it automatically reads jar file produced from jar task
+    into "${project(":services-android").projectDir.absolutePath}/libs"
+}
+jar.finalizedBy(copyJar)
+
+dependencies {
+    implementation project(":utils")
+    implementation project(":services-os")
+
+    implementation "io.ktor:ktor-client:$ktor_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+
+    testImplementation "io.ktor:ktor-client-mock-jvm:$ktor_version"
+}
+
+rootProject.all_dependencies += configurations.implementation.getAllDependencies()
+

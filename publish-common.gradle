@@ -1,0 +1,29 @@
+ext.publishCommon = {
+    pom.withXml {
+        // add modules dependencies
+        Node pomNode = asNode()
+        all_dependencies.each { Dependency dep ->
+            if (!pomNode.dependencies.contains(dep.name)) {
+                def dependencyNode = pomNode.dependencies.first().appendNode("dependency")
+                dependencyNode.appendNode("groupId", dep.group)
+                dependencyNode.appendNode("artifactId", dep.name)
+                dependencyNode.appendNode("version", dep.version)
+            }
+        }
+        def processed = []
+        // remove invalid dependencies and duplicates
+        pomNode.dependencies.'*'.each() {
+            if (it.groupId == null ||
+                    it.groupId.text() == rootProject.name ||
+                    it.groupId.text() == "unspecified" ||
+                    it.artifactId == null ||
+                    it.artifactId.text() == "unspecified") {
+                it.parent().remove(it)
+            } else if (processed.contains(it.groupId.text() + ":" + it.artifactId.text())) {
+                it.parent().remove(it)
+            } else {
+                processed += it.groupId.text() + ":" + it.artifactId.text()
+            }
+        }
+    }
+}

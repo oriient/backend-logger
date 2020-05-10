@@ -1,0 +1,54 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply from: "${rootProject.projectDir}/android-common.gradle"
+apply from: "${rootProject.projectDir}/publish-common.gradle"
+apply plugin: "maven-publish"
+apply plugin: "com.jfrog.artifactory"
+apply plugin: 'org.jetbrains.dokka'
+
+android {
+    with androidCommon
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:$kotlin_stdlib:$kotlin_version"
+
+    implementation project(":services-os")
+    implementation project(":backendlogger")
+    implementation project(":utils")
+
+    implementation "com.android.support:support-annotations:$support_version"
+
+    implementation "io.ktor:ktor-client-android:$ktor_version"
+    implementation "io.ktor:ktor-client-okhttp:$ktor_version"
+    implementation "io.ktor:ktor-client-logging-jvm:$ktor_version"
+
+    implementation "com.squareup.sqldelight:android-driver:$sqldelight_version"
+
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+
+    testImplementation "junit:junit:$junit_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testImplementation "io.mockk:mockk:$mockk_version"
+    androidTestImplementation "androidx.test:runner:$android_tests_versdion"
+    androidTestImplementation "androidx.test:rules:$android_tests_versdion"
+    androidTestImplementation project(':services-serializer-json')
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            backendlogger(MavenPublication) {
+                from components.debug
+
+                groupId = "me.oriient"
+                artifactId = "backend-logger-dev"
+                version = android.defaultConfig.versionName
+
+                with publishCommon
+            }
+        }
+    }
+}

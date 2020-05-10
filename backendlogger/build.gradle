@@ -1,0 +1,19 @@
+apply plugin: 'org.jetbrains.dokka'
+
+task copyJar(type: Copy) {
+    from jar // here it automatically reads jar file produced from jar task
+    into "${project(":services-android").projectDir.absolutePath}/libs"
+}
+jar.finalizedBy(copyJar)
+
+dependencies {
+    implementation project(":di")
+    implementation project(":services-rest")
+    implementation project(":services-messages")
+    implementation project(":services-os")
+    implementation project(":utils")
+
+    testImplementation "org.koin:koin-test:$koin_version"
+}
+
+rootProject.all_dependencies += configurations.implementation.getAllDependencies()
