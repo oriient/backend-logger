@@ -24,7 +24,7 @@ The serializer is implemented as a separate library for extendability.
 Structure diagram:
 
 
-![Backend Logger Modules](https://user-images.githubusercontent.com/20625205/76210786-7da0ab80-620d-11ea-9ac7-db4cb28c7033.png)
+![Backend Logger Modules](images/backend-logger-modules.png)
 
 Further development plan:
 - add javadoc and sources to the publication
