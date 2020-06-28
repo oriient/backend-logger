@@ -6,6 +6,7 @@ The messages are persisted until sent and a retry mechanism is implemented if th
 
 Example of use:
 ```kotlin
+
 val backendLogger = BackendLogger("https://your.domain/api/log") {
     sizeLimit = 100 // this is the default value
     retries = 10 // this is the default value
@@ -13,6 +14,7 @@ val backendLogger = BackendLogger("https://your.domain/api/log") {
 val message = mutableMapOf<String, Any>()
 message["message"] = "Test message"
 backendLogger.sendMessage(message)
+
 ```
 The messages are sent as payload on a POST request to the provided URL.
 They are serialized by a serializer before being sent.
