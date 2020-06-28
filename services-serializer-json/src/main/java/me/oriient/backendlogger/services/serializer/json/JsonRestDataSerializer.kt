@@ -34,11 +34,12 @@ class JsonRestDataSerializer(restProvider: RestProvider): RestDataSerializer, DI
         val jsonElements = mutableMapOf<String, JsonElement>()
         for (entry in data.entries) {
             // TODO: 19/02/2020 support more types
-            when {
-                entry.value.javaClass.isPrimitive -> jsonElements[entry.key] = parsePrimitive(entry.value)
-                entry.value.javaClass.isArray -> jsonElements[entry.key] = parseArray(entry.value)
-                else -> Log.e(TAG, "Data of type ${entry.value::class} is not supported")
-            }
+            jsonElements[entry.key] = parsePrimitive(entry.value)
+//            when {
+//                entry.value.javaClass.isPrimitive -> jsonElements[entry.key] = parsePrimitive(entry.value)
+//                entry.value.javaClass.isArray -> jsonElements[entry.key] = parseArray(entry.value)
+//                else -> Log.e(TAG, "Data of type ${entry.value::class} is not supported")
+//            }
         }
         return TextContent(JsonObject(jsonElements).toString(), ContentType.Application.Json)
     }
@@ -66,6 +67,7 @@ class JsonRestDataSerializer(restProvider: RestProvider): RestDataSerializer, DI
             is Number -> JsonPrimitive(value)
             is Boolean -> JsonPrimitive(value)
             else -> {
+                throw IllegalArgumentException("${value::class.simpleName} is not a primitive")
                 Log.e(TAG, "${value::class.simpleName} is not a primitive")
                 JsonPrimitive("${value::class.simpleName}")
             }

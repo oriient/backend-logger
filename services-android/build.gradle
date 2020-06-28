@@ -16,6 +16,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:$kotlin_stdlib:$kotlin_version"
 
     implementation project(":services-os")
+    implementation project(":services-database")
     implementation project(":backendlogger")
     implementation project(":utils")
 

@@ -5,6 +5,8 @@ import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import me.oriient.backendlogger.services.messages.Message
 import me.oriient.backendlogger.services.messages.MessagesRepository
 import me.oriient.backendlogger.services.os.network.NetworkManager
@@ -13,8 +15,6 @@ import me.oriient.backendlogger.services.os.scheduler.Scheduler
 import me.oriient.backendlogger.services.rest.RestDataSerializer
 import me.oriient.backendlogger.services.rest.RestService
 import me.oriient.backendlogger.utils.BLCoroutineScope
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 private const val TAG = "BackendLogger"
 
@@ -110,6 +110,7 @@ class BackendLogger(val url: String) {
 
         // TODO: 24/05/2020 retries
 
+
         GlobalScope.launch(Dispatchers.IO) {
             when(options.state) {
                 is Online -> {
@@ -158,31 +159,35 @@ class BackendLogger(val url: String) {
             this.globalOptions.apply(block)
         }
 
+        private val mutex = Mutex()
+
         internal suspend fun trySendingMessages(): Boolean {
-            Log.d(TAG, "trySendingMessages() called")
+            mutex.withLock {
+                Log.d(TAG, "trySendingMessages() called")
+                val messagesRepository: Lazy<MessagesRepository> = inject()
+                val restService: Lazy<RestService> = inject()
+                val serializer: Lazy<RestDataSerializer> = inject()
 
-            val messagesRepository: Lazy<MessagesRepository> = inject()
-            val restService: Lazy<RestService> = inject()
-            val serializer: Lazy<RestDataSerializer> = inject()
-
-            while (messagesRepository.value.getMessagesCount() > 0) {
-                messagesRepository.value.getOldest()?.run {
-                    if (retries <= 0L) {
-                        messagesRepository.value.remove(timeReceivedMilli)
-                    } else if (restService.value.sendMessage(url, data, serializer.value)) {
-                        messagesRepository.value.remove(timeReceivedMilli)
-                    } else {
-                        retries--
+                while (messagesRepository.value.getMessagesCount() > 0) {
+                    messagesRepository.value.getOldest()?.run {
                         if (retries <= 0L) {
                             messagesRepository.value.remove(timeReceivedMilli)
+                        } else if (runBlocking { restService.value.sendMessage(url, data, serializer.value) } ) {
+                            messagesRepository.value.remove(timeReceivedMilli)
                         } else {
-                            messagesRepository.value.upsert(this)
+                            retries--
+                            if (retries <= 0L) {
+                                messagesRepository.value.remove(timeReceivedMilli)
+                            } else {
+                                messagesRepository.value.upsert(this)
+                            }
+                            return false
                         }
-                        return false
                     }
                 }
+                Log.d(TAG, "trySendingMessages() ending")
+                return messagesRepository.value.getMessagesCount() == 0
             }
-            return messagesRepository.value.getMessagesCount() == 0
         }
     }
 }
