@@ -1,0 +1,1 @@
+{"databases":[{"packageName":"me.oriient.backendlogger.services.database","compilationUnits":[{"name":"main","sourceFolders":[{"path":"src/main/sqldelight","dependency":false}]}],"outputDirectory":"build/generated/sqldelight/code/BackendLoggerDatabase","className":"BackendLoggerDatabase","dependencies":[]}]}
