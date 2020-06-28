@@ -6,7 +6,7 @@ apply plugin: 'androidx.navigation.safeargs'
 def Properties localProperties = new Properties()
 localProperties.load(project.rootProject.file("local.properties").newDataInputStream())
 
-android {
+    android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
 

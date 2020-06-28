@@ -1,7 +1,7 @@
 package me.oriient.backendlogger.services.messages
 
+import android.util.Log
 import me.oriient.backendlogger.services.database.DatabaseService
-import me.oriient.backendlogger.services.os.log.Log
 import me.oriient.backendlogger.utils.DIProvidable
 
 private const val TAG = "MessagesRepository"
@@ -19,17 +19,16 @@ interface MessagesRepository: DIProvidable {
 
 @Suppress("unused")
 internal class MessageRepositoryImpl(
-    private val logger: Log,
     private val databaseService: DatabaseService
 ): MessagesRepository {
 
     override fun enqueueMessage(message: Message) {
-        logger.d(TAG, "enqueueMessage() called with: message = [$message]")
+        Log.d(TAG, "enqueueMessage() called with: message = [$message]")
         databaseService.upsert(message.toDatabaseData())
     }
 
     override fun upsert(message: Message) {
-        logger.d(TAG, "upsert() called with: message = [$message]")
+        Log.d(TAG, "upsert() called with: message = [$message]")
         databaseService.upsert(message.toDatabaseData())
     }
 
@@ -46,17 +45,17 @@ internal class MessageRepositoryImpl(
     }
 
     override fun removeAll() {
-        logger.d(TAG, "removeAll() called")
+        Log.d(TAG, "removeAll() called")
         databaseService.removeAll()
     }
 
     override fun removeOldest() {
-        logger.d(TAG, "removeOldest() called")
+        Log.d(TAG, "removeOldest() called")
         databaseService.removeOldest()
     }
 
     override fun remove(timeReceivedMilli: Long) {
-        logger.d(TAG, "remove() called with: timeReceivedMilli = [$timeReceivedMilli]")
+        Log.d(TAG, "remove() called with: timeReceivedMilli = [$timeReceivedMilli]")
         databaseService.remove(timeReceivedMilli)
     }
 }

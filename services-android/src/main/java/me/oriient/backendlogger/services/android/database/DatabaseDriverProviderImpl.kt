@@ -7,7 +7,10 @@ import me.oriient.backendlogger.services.database.BackendLoggerDatabase
 import me.oriient.backendlogger.services.os.database.DatabaseDriverProvider
 
 @Suppress("unused")
-internal class DatabaseDriverProviderImpl:
-    DatabaseDriverProvider {
-        override val driver: SqlDriver = AndroidSqliteDriver(BackendLoggerDatabase.Schema, context, "me.oriient.backendlogger.database")
-    }
+internal class DatabaseDriverProviderImpl: DatabaseDriverProvider {
+    override val driver: SqlDriver = AndroidSqliteDriver(
+        BackendLoggerDatabase.Schema,
+        context,
+        "me.oriient.backendlogger.database"
+    )
+}

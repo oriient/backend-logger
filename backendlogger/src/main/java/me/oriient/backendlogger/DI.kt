@@ -1,5 +1,6 @@
 package me.oriient.backendlogger
 
+import android.util.Log
 import me.oriient.backendlogger.di.DI
 import me.oriient.backendlogger.utils.DIProvidable
 
@@ -10,7 +11,7 @@ internal lateinit var di: DI
 internal fun initializeDi() {
     if (!::di.isInitialized) {
         di = Class.forName("me.oriient.backendlogger.di.DIImpl").newInstance() as DI
-        logd(TAG, "DI initialized")
+        Log.d(TAG, "DI initialized")
     }
 }
 
@@ -22,19 +23,4 @@ internal inline fun <reified T: DIProvidable> get(): T {
 internal inline fun <reified T: DIProvidable> inject(): Lazy<T> {
     initializeDi()
     return di.inject(T::class)
-}
-
-// Logging
-
-fun logd(tag: String, message: String) {
-    di.log.d(tag, message)
-}
-fun logi(tag: String, message: String) {
-    di.log.i(tag, message)
-}
-fun logw(tag: String, message: String) {
-    di.log.w(tag, message)
-}
-fun loge(tag: String, message: String) {
-    di.log.e(tag, message)
 }

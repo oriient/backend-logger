@@ -3,7 +3,6 @@
 package me.oriient.backendlogger.services.android.rest
 
 import me.oriient.backendlogger.BuildConfig
-import me.oriient.backendlogger.services.android.log.LogImpl
 import me.oriient.backendlogger.services.os.rest.RestProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
@@ -16,7 +15,7 @@ internal class RestProviderImpl: RestProvider {
     override fun getClient(): HttpClient {
         return HttpClient(Android) {
             install(Logging) {
-                logger = LogImpl()
+                logger = RestLogger()
                 level = if (BuildConfig.DEBUG) LogLevel.BODY else LogLevel.NONE
             }
         }

@@ -1,7 +1,7 @@
 package me.oriient.backendlogger.services.serializer.json
 
+import android.util.Log
 import androidx.annotation.Keep
-import me.oriient.backendlogger.services.os.log.Log
 import me.oriient.backendlogger.services.os.rest.RestProvider
 import me.oriient.backendlogger.services.rest.RestDataSerializer
 import me.oriient.backendlogger.utils.DIProvidable
@@ -17,7 +17,7 @@ private const val TAG = "JsonRestDataSerializer"
 
 @Keep
 @Suppress("unused")
-class JsonRestDataSerializer(private val logger: Log, restProvider: RestProvider): RestDataSerializer, DIProvidable {
+class JsonRestDataSerializer(restProvider: RestProvider): RestDataSerializer, DIProvidable {
 
     init {
         restProvider.getClient().config {
@@ -34,22 +34,42 @@ class JsonRestDataSerializer(private val logger: Log, restProvider: RestProvider
         val jsonElements = mutableMapOf<String, JsonElement>()
         for (entry in data.entries) {
             // TODO: 19/02/2020 support more types
-            when (entry.value) {
-                is String -> {
-                    jsonElements[entry.key] = JsonPrimitive(entry.value as String)
-                }
-                is Number -> {
-                    jsonElements[entry.key] = JsonPrimitive(entry.value as Number)
-                }
-                is Boolean -> {
-                    jsonElements[entry.key] = JsonPrimitive(entry.value as Boolean)
-                }
-                else -> {
-                    logger.e(TAG, "Data of type ${entry.value::class} is not supported")
-                }
+            when {
+                entry.value.javaClass.isPrimitive -> jsonElements[entry.key] = parsePrimitive(entry.value)
+                entry.value.javaClass.isArray -> jsonElements[entry.key] = parseArray(entry.value)
+                else -> Log.e(TAG, "Data of type ${entry.value::class} is not supported")
             }
         }
         return TextContent(JsonObject(jsonElements).toString(), ContentType.Application.Json)
+    }
+
+    private fun parseArray(array: Any): JsonArray {
+        val elements = mutableListOf<JsonElement>()
+        if (array is Array<*>) {
+            for (value in array) {
+                elements.add(
+                    when {
+                        value == null -> JsonNull
+                        value.javaClass.isPrimitive -> parsePrimitive(value)
+                        value.javaClass.isArray -> parseArray(value)
+                        else -> JsonPrimitive(value::class.java.simpleName)
+                    }
+                )
+            }
+        }
+        return JsonArray(elements)
+    }
+
+    private fun parsePrimitive(value: Any): JsonPrimitive {
+        return when (value) {
+            is String -> JsonPrimitive(value)
+            is Number -> JsonPrimitive(value)
+            is Boolean -> JsonPrimitive(value)
+            else -> {
+                Log.e(TAG, "${value::class.simpleName} is not a primitive")
+                JsonPrimitive("${value::class.simpleName}")
+            }
+        }
     }
 
     companion object {

@@ -1,7 +1,6 @@
 package me.oriient.backendlogger.services.database
 
 import me.oriient.backendlogger.services.os.database.DatabaseDriverProvider
-import me.oriient.backendlogger.services.os.log.Log
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
@@ -18,7 +17,7 @@ interface DatabaseService {
 }
 
 @Suppress("unused")
-internal class DatabaseServiceImpl(private val logger: Log, driverProvider: DatabaseDriverProvider): DatabaseService {
+internal class DatabaseServiceImpl(driverProvider: DatabaseDriverProvider): DatabaseService {
 
     private val database = BackendLoggerDatabase(driverProvider.driver)
 

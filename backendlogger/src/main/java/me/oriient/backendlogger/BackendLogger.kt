@@ -1,14 +1,20 @@
 package me.oriient.backendlogger
 
 import android.support.annotation.Keep
+import android.util.Log
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
 import me.oriient.backendlogger.services.messages.Message
 import me.oriient.backendlogger.services.messages.MessagesRepository
+import me.oriient.backendlogger.services.os.network.NetworkManager
+import me.oriient.backendlogger.services.os.scheduler.ScheduleOptions
 import me.oriient.backendlogger.services.os.scheduler.Scheduler
 import me.oriient.backendlogger.services.rest.RestDataSerializer
 import me.oriient.backendlogger.services.rest.RestService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import me.oriient.backendlogger.utils.BLCoroutineScope
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 private const val TAG = "BackendLogger"
 
@@ -18,17 +24,22 @@ private const val TAG = "BackendLogger"
  * @see {@link PublicOptions} and {@link LocalOptions} for configuration options.
  */
 
+@FlowPreview
+@ExperimentalCoroutinesApi
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 @Keep
 class BackendLogger(val url: String) {
 
     private val localOptions = InstanceOptions()
     private val options = OptionsResolver(localOptions, globalOptions)
+    private var connected: Boolean = false
+    private var metered: Boolean = true
 
-    private val messagesRepository: Lazy<MessagesRepository> = inject()
-    private val restService: Lazy<RestService> = inject()
-    private val scheduler: Lazy<Scheduler> = inject()
-    private val serializer: Lazy<RestDataSerializer> = inject()
+    private val messagesRepository = inject<MessagesRepository>()
+    private val restService = inject<RestService>()
+    private val scheduler = inject<Scheduler>()
+    private val serializer = inject<RestDataSerializer>()
+    private val networkManager = inject<NetworkManager>()
 
     val unsentMessagesCount: Int
         get() { return messagesRepository.value.getMessagesCount(url) }
@@ -37,12 +48,33 @@ class BackendLogger(val url: String) {
         configure(block)
     }
 
+    init {
+        BLCoroutineScope.launch {
+            networkManager.value.isConnected.asFlow().collect {
+                Log.d(TAG, "connection state changed to $it")
+                connected = it
+            }
+            networkManager.value.isConnectionMetered.asFlow().collect {
+                Log.d(TAG, "connection state metered changed to $it")
+                metered = it
+            }
+        }
+    }
+
     /**
      * Apply configuration to this instance of {@link BackendLogger}.
      * Any configuration applied here will override global configurations.
      */
     fun configure(block: InstanceOptions.() -> Unit = {}) {
+        val stateBeforeConfig = options.state
+
         this.localOptions.apply(block)
+
+        if (stateBeforeConfig is Scheduled && options.state is Online) {
+            GlobalScope.launch(Dispatchers.IO) {
+                onStateOnline()
+            }
+        }
     }
 
     /**
@@ -53,15 +85,15 @@ class BackendLogger(val url: String) {
      */
     @Synchronized
     fun sendMessage(messageData: Map<String, Any>) {
-        logd(TAG, "sendMessage() called with: messageData = [$messageData]")
+        Log.d(TAG, "sendMessage() called with: messageData = [$messageData]")
 
         if (messageData.isEmpty()) {
-            loge(TAG, "Not sending messages with empty data")
+            Log.e(TAG, "Not sending messages with empty data")
             return
         }
 
         if (messagesRepository.value.getMessagesCount(url) == options.sizeLimit || messagesRepository.value.getMessagesCount() == globalOptions.sizeLimit) {
-            logd(TAG, "sendMessage: queue is full")
+            Log.d(TAG, "sendMessage: queue is full")
             messagesRepository.value.removeOldest()
         }
 
@@ -76,10 +108,20 @@ class BackendLogger(val url: String) {
 
         // TODO: 28/04/2020 check network connection and listen to network state
 
+        // TODO: 24/05/2020 retries
+
         GlobalScope.launch(Dispatchers.IO) {
-            if (!trySendingMessages()) {
-                scheduler.value.schedule(ScheduledWork::class.java)
+            when(options.state) {
+                is Online -> {
+                    onStateOnline()
+                }
             }
+        }
+    }
+
+    private suspend fun onStateOnline() {
+        if (!trySendingMessages()) {
+            scheduler.value.schedule(ScheduledWork::class.java)
         }
     }
 
@@ -91,29 +133,15 @@ class BackendLogger(val url: String) {
         return serializer.value.acceptedClasses.contains(clazz)
     }
 
-    /**
-     * Global configuration options.
-     */
-    @Keep
-    class GlobalOptions internal constructor() {
-        var sizeLimit = 100
-        var retries = 10
-    }
-
-    /**
-     * Instance configuration options.
-     */
-    @Keep
-    class InstanceOptions internal constructor() {
-        var sizeLimit: Int? = null
-        var retries: Int? = null
-    }
-
     private class OptionsResolver(private val instanceOptions: InstanceOptions, private val globalOptions: GlobalOptions) {
         val sizeLimit: Int
             get() { return instanceOptions.sizeLimit ?: globalOptions.sizeLimit }
         val retries: Int
             get() { return instanceOptions.retries ?: globalOptions.retries }
+        val state: State
+            get() { return instanceOptions.state ?: globalOptions.state }
+        val scheduleOptions: ScheduleOptions
+            get() { return instanceOptions.scheduleOptions ?: globalOptions.scheduleOptions }
     }
 
     companion object {
@@ -131,7 +159,7 @@ class BackendLogger(val url: String) {
         }
 
         internal suspend fun trySendingMessages(): Boolean {
-            logd(TAG, "trySendingMessages() called")
+            Log.d(TAG, "trySendingMessages() called")
 
             val messagesRepository: Lazy<MessagesRepository> = inject()
             val restService: Lazy<RestService> = inject()

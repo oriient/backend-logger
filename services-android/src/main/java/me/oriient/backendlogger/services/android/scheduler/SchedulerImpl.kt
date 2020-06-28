@@ -1,10 +1,11 @@
 package me.oriient.backendlogger.services.android.scheduler
 
 import android.content.Context
+import android.util.Log
 import androidx.work.*
 import kotlinx.coroutines.runBlocking
 import me.oriient.backendlogger.services.android.context
-import me.oriient.backendlogger.services.os.log.Log
+import me.oriient.backendlogger.services.os.scheduler.ScheduleOptions
 import me.oriient.backendlogger.services.os.scheduler.Scheduler
 import me.oriient.backendlogger.services.os.scheduler.Work
 
@@ -14,15 +15,21 @@ private const val TAG = "BackendLoggerWorker"
 private const val WORKER_CLASS_NAME_KEY = "workerClassName"
 
 @Suppress("unused")
-internal class SchedulerImpl(private val logger: Log): Scheduler {
-    override fun <T : Work> schedule(clazz: Class<T>) {
-        logger.d(TAG, "schedule() called with: clazz = [$clazz]")
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
+internal class SchedulerImpl(): Scheduler {
+    override fun <T : Work> schedule(clazz: Class<T>, options: ScheduleOptions) {
+        Log.d(TAG, "schedule() called with: clazz = [$clazz], options = [$options]")
+        val constraintsBuilder = Constraints.Builder()
+
+        if (options.allowMeteredNetworks) {
+            constraintsBuilder.setRequiredNetworkType(NetworkType.CONNECTED)
+        } else {
+            constraintsBuilder.setRequiredNetworkType(NetworkType.UNMETERED)
+        }
+
+        constraintsBuilder.setRequiresCharging(options.requireCharger)
 
         val uploadWorkRequest = OneTimeWorkRequestBuilder<WorkWrapper>()
-            .setConstraints(constraints)
+            .setConstraints(constraintsBuilder.build())
             .setInputData(Data.Builder().putString(WORKER_CLASS_NAME_KEY, clazz.canonicalName).build())
             .build()
         WorkManager.getInstance(context).enqueue(uploadWorkRequest)

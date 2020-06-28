@@ -1,3 +1,7 @@
+jar {
+    exclude('android/**')
+}
+
 task copyJar(type: Copy) {
     from jar // here it automatically reads jar file produced from jar task
     into "${project(":services-android").projectDir.absolutePath}/libs"
