@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.lib_version_name = "0.2.0"
+    ext.lib_version_name = "0.0.16"
     ext.lib_version_code = 1
     ext.java_version = JavaVersion.VERSION_1_8
     ext.kotlin_stdlib = 'kotlin-stdlib-jdk8'

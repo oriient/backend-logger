@@ -35,18 +35,37 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            serializerjson(MavenPublication) {
-                from components.release
+publishing {
+    publications {
+        backendlogger(MavenPublication) {
+            groupId "me.oriient"
+            version android.defaultConfig.versionName
+            artifactId "backend-logger-serializer-json"
 
-                groupId = "me.oriient"
-                artifactId = "backend-logger-serializer-json"
-                version = android.defaultConfig.versionName
+            artifact("$buildDir/outputs/aar/services-serializer-json-release.aar")
 
-                with publishCommon
-            }
+//            if (buildMode == BuildMode.Release) {
+//                artifact androidJavadocsJar
+//                artifact androidSourcesJar
+//            }
+
+            with publishCommon
         }
     }
 }
+
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            serializerjson(MavenPublication) {
+//                from components.release
+//
+//                groupId = "me.oriient"
+//                artifactId = "backend-logger-serializer-json"
+//                version = android.defaultConfig.versionName
+//
+//                with publishCommon
+//            }
+//        }
+//    }
+//}

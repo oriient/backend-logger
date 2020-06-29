@@ -37,18 +37,37 @@ dependencies {
     androidTestImplementation project(':services-serializer-json')
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            backendlogger(MavenPublication) {
-                from components.debug
+publishing {
+    publications {
+        backendlogger(MavenPublication) {
+            groupId "me.oriient"
+            version android.defaultConfig.versionName
+            artifactId "backend-logger-dev"
 
-                groupId = "me.oriient"
-                artifactId = "backend-logger-dev"
-                version = android.defaultConfig.versionName
+            artifact("$buildDir/outputs/aar/services-android-debug.aar")
 
-                with publishCommon
-            }
+//            if (buildMode == BuildMode.Release) {
+//                artifact androidJavadocsJar
+//                artifact androidSourcesJar
+//            }
+
+            with publishCommon
         }
     }
 }
+
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            backendlogger(MavenPublication) {
+//                from components.debug
+//
+//                groupId = "me.oriient"
+//                artifactId = "backend-logger-dev"
+//                version = android.defaultConfig.versionName
+//
+//                with publishCommon
+//            }
+//        }
+//    }
+//}

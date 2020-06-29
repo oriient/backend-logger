@@ -4,7 +4,7 @@ import me.oriient.backendlogger.*
 import me.oriient.backendlogger.di.DI
 import me.oriient.backendlogger.services.messages.Message
 import me.oriient.backendlogger.services.messages.MessagesRepository
-import me.oriient.backendlogger.services.os.log.Log
+//import me.oriient.backendlogger.services.os.log.Log
 import me.oriient.backendlogger.services.os.scheduler.Scheduler
 import me.oriient.backendlogger.services.rest.RestDataSerializer
 import me.oriient.backendlogger.services.rest.RestService
@@ -41,13 +41,13 @@ class BasicTests {
         every { initializeDi() } answers { nothing }
         every { di } returns diMock
 
-        every { loge(any(), any()) } answers {
-            println("$${arg<String>(0)}: ${arg<String>(1)}")
-            nothing
-        }
-        every { logd(any(), any()) } answers { nothing }
-        every { logi(any(), any()) } answers { nothing }
-        every { logw(any(), any()) } answers { nothing }
+//        every { loge(any(), any()) } answers {
+//            println("$${arg<String>(0)}: ${arg<String>(1)}")
+//            nothing
+//        }
+//        every { logd(any(), any()) } answers { nothing }
+//        every { logi(any(), any()) } answers { nothing }
+//        every { logw(any(), any()) } answers { nothing }
 
         every { inject<MessagesRepository>() } returns lazyMessagesRepository
         every { lazyMessagesRepository.value } returns messagesRepository
