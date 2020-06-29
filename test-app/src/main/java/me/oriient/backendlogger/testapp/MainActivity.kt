@@ -23,9 +23,9 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         backendLogger = BackendLogger(BuildConfig.TEST_URL) {
-            sizeLimit = 2
+            sizeLimit = 100
             retries = 3
-            state = Scheduled
+            state = Online()
         }
         var c = 1
         val message = mutableMapOf<String, Any>()
@@ -37,9 +37,40 @@ class MainActivity : AppCompatActivity() {
 //        backendLogger.sendMessage(message)
 
         fab.setOnClickListener {
-            backendLogger.configure { state = Online() }
+
+            var map = hashMapOf<String, Any>()
+
+            map["couter"] = logCounter
+            map["string"] = "abc 1"
+            map["bool1"] = false
+            map["bool2"] = true
+            map["float"] = 1.0f
+            map["int"] = 5
+
+            val map1 = map
+
+            logCounter++
+
+            map = hashMapOf<String, Any>()
+            map["couter"] = logCounter
+            map["string"] = "abc 2"
+            map["bool1"] = false
+            map["bool2"] = true
+            map["float"] = 1.0f
+            map["int"] = 5
+
+            val map2 = map
+
+            logCounter++
+
+            backendLogger.sendMessage(map1)
+            backendLogger.sendMessage(map2)
+
+            //backendLogger.configure { state = Online() }
         }
     }
+
+    var logCounter = 1000
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
