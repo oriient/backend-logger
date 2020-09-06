@@ -67,9 +67,8 @@ class JsonRestDataSerializer(restProvider: RestProvider): RestDataSerializer, DI
             is Number -> JsonPrimitive(value)
             is Boolean -> JsonPrimitive(value)
             else -> {
-                throw IllegalArgumentException("${value::class.simpleName} is not a primitive")
                 Log.e(TAG, "${value::class.simpleName} is not a primitive")
-                JsonPrimitive("${value::class.simpleName}")
+                throw IllegalArgumentException("${value::class.simpleName} is not a primitive")
             }
         }
     }

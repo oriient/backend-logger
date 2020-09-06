@@ -51,11 +51,14 @@ class BackendLogger(val url: String) {
     init {
         BLCoroutineScope.launch {
             networkManager.value.isConnected.asFlow().collect {
-                Log.d(TAG, "connection state changed to $it")
+//                Log.d(TAG, "connection state changed to $it")
                 connected = it
+                if (connected) {
+                    doSendMessages()
+                }
             }
             networkManager.value.isConnectionMetered.asFlow().collect {
-                Log.d(TAG, "connection state metered changed to $it")
+//                Log.d(TAG, "connection state metered changed to $it")
                 metered = it
             }
         }
@@ -70,9 +73,9 @@ class BackendLogger(val url: String) {
 
         this.localOptions.apply(block)
 
-        if (stateBeforeConfig is Scheduled && options.state is Online) {
+        if (stateBeforeConfig != options.state) {
             GlobalScope.launch(Dispatchers.IO) {
-                onStateOnline()
+                doSendMessages()
             }
         }
     }
@@ -85,7 +88,7 @@ class BackendLogger(val url: String) {
      */
     @Synchronized
     fun sendMessage(messageData: Map<String, Any>) {
-        Log.d(TAG, "sendMessage() called with: messageData = [$messageData]")
+//        Log.d(TAG, "sendMessage() called with: messageData = [$messageData]")
 
         if (messageData.isEmpty()) {
             Log.e(TAG, "Not sending messages with empty data")
@@ -106,22 +109,26 @@ class BackendLogger(val url: String) {
             )
         )
 
-        // TODO: 28/04/2020 check network connection and listen to network state
-
         // TODO: 24/05/2020 retries
 
-
         GlobalScope.launch(Dispatchers.IO) {
-            when(options.state) {
-                is Online -> {
-                    onStateOnline()
-                }
+            doSendMessages()
+        }
+    }
+
+    private suspend fun BackendLogger.doSendMessages() {
+        when (options.state) {
+            is Scheduled -> {
+                trySendingOrReschedule()
+            }
+            is Online -> {
+                trySendingMessages()
             }
         }
     }
 
-    private suspend fun onStateOnline() {
-        if (!trySendingMessages()) {
+    private suspend fun trySendingOrReschedule() {
+        if (!connected || !trySendingMessages()) {
             scheduler.value.schedule(ScheduledWork::class.java)
         }
     }
@@ -163,7 +170,7 @@ class BackendLogger(val url: String) {
 
         internal suspend fun trySendingMessages(): Boolean {
             mutex.withLock {
-                Log.d(TAG, "trySendingMessages() called")
+//                Log.d(TAG, "trySendingMessages() called")
                 val messagesRepository: Lazy<MessagesRepository> = inject()
                 val restService: Lazy<RestService> = inject()
                 val serializer: Lazy<RestDataSerializer> = inject()
@@ -185,7 +192,7 @@ class BackendLogger(val url: String) {
                         }
                     }
                 }
-                Log.d(TAG, "trySendingMessages() ending")
+//                Log.d(TAG, "trySendingMessages() ending")
                 return messagesRepository.value.getMessagesCount() == 0
             }
         }

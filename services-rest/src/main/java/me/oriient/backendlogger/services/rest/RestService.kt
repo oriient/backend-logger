@@ -21,17 +21,17 @@ internal class RestServiceImpl(provider: RestProvider): RestService {
     private val client: HttpClient = provider.getClient()
 
     override suspend fun sendMessage(url: String, message: Map<String, Any>, serializer: RestDataSerializer): Boolean {
-        Log.d(TAG, "sendMessage() called with: url = [$url], message = [$message], serializer = [$serializer]")
+//        Log.d(TAG, "sendMessage() called with: url = [$url], message = [$message], serializer = [$serializer]")
 
         return try {
             val response = client.post<HttpResponse> {
                 url(url)
                 body = serializer.serialize(message)
             }
-            Log.d(TAG, "sendMessage: response is $response")
+//            Log.d(TAG, "sendMessage: response is $response")
             response.status.value in 200..299
         } catch (cause: Throwable) {
-            Log.e(TAG, "postString: ${cause.message}")
+            Log.e(TAG, "sendMessage: ${cause.message}")
             false
         }
     }

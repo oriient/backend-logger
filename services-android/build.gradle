@@ -43,9 +43,9 @@ publishing {
         backendlogger(MavenPublication) {
             groupId "me.oriient"
             version android.defaultConfig.versionName
-            artifactId "backend-logger-dev"
+            artifactId "backend-logger"
 
-            artifact("$buildDir/outputs/aar/services-android-debug.aar")
+            artifact("$buildDir/outputs/aar/services-android-release.aar")
 
 //            if (buildMode == BuildMode.Release) {
 //                artifact androidJavadocsJar

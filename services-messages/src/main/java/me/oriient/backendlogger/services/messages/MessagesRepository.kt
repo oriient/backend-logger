@@ -23,12 +23,12 @@ internal class MessageRepositoryImpl(
 ): MessagesRepository {
 
     override fun enqueueMessage(message: Message) {
-        Log.d(TAG, "enqueueMessage() called with: message = [$message]")
+//        Log.d(TAG, "enqueueMessage() called with: message = [$message]")
         databaseService.upsert(message.toDatabaseData())
     }
 
     override fun upsert(message: Message) {
-        Log.d(TAG, "upsert() called with: message = [$message]")
+//        Log.d(TAG, "upsert() called with: message = [$message]")
         databaseService.upsert(message.toDatabaseData())
     }
 
@@ -45,17 +45,17 @@ internal class MessageRepositoryImpl(
     }
 
     override fun removeAll() {
-        Log.d(TAG, "removeAll() called")
+//        Log.d(TAG, "removeAll() called")
         databaseService.removeAll()
     }
 
     override fun removeOldest() {
-        Log.d(TAG, "removeOldest() called")
+//        Log.d(TAG, "removeOldest() called")
         databaseService.removeOldest()
     }
 
     override fun remove(timeReceivedMilli: Long) {
-        Log.d(TAG, "remove() called with: timeReceivedMilli = [$timeReceivedMilli]")
+//        Log.d(TAG, "remove() called with: timeReceivedMilli = [$timeReceivedMilli]")
         databaseService.remove(timeReceivedMilli)
     }
 }

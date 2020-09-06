@@ -9,8 +9,12 @@ import me.oriient.backendlogger.services.os.scheduler.Scheduler
 import me.oriient.backendlogger.services.rest.RestDataSerializer
 import me.oriient.backendlogger.services.rest.RestService
 import io.mockk.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import org.junit.Test
 
+@ExperimentalCoroutinesApi
+@FlowPreview
 class BasicTests {
 
     @Test
@@ -20,7 +24,7 @@ class BasicTests {
 
         val url = "testUrl"
         val retriesCount = 1
-        val limit = 5
+        val limit = 5  // not less than 2
         var countResponse = limit
         val messageDataMap = mutableMapOf<String, Any>()
         messageDataMap["message"] = "Test message"
